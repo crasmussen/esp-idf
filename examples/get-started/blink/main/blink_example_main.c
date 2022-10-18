@@ -7,6 +7,8 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
@@ -22,6 +24,7 @@ static const char *TAG = "example";
 #define BLINK_GPIO CONFIG_BLINK_GPIO
 
 static uint8_t s_led_state = 0;
+static uint8_t counter = 0;
 
 #ifdef CONFIG_BLINK_LED_RMT
 static led_strip_t *pStrip_a;
@@ -30,8 +33,13 @@ static void blink_led(void)
 {
     /* If the addressable LED is enabled */
     if (s_led_state) {
+
+        int red = rand() % 255;
+        int green = rand() % 255;
+        int blue = rand() % 255;
+
         /* Set the LED pixel using RGB from 0 (0%) to 255 (100%) for each color */
-        pStrip_a->set_pixel(pStrip_a, 0, 16, 16, 16);
+        pStrip_a->set_pixel(pStrip_a, 0, red, green, blue);
         /* Refresh the strip to send data */
         pStrip_a->refresh(pStrip_a, 100);
     } else {
@@ -69,6 +77,7 @@ static void configure_led(void)
 
 void app_main(void)
 {
+    srand(time(NULL));
 
     /* Configure the peripheral according to the LED type */
     configure_led();
@@ -78,6 +87,13 @@ void app_main(void)
         blink_led();
         /* Toggle the LED state */
         s_led_state = !s_led_state;
+
+        if (counter < 255) {
+            counter = counter + 1;
+        } else {
+            counter = 0;
+        }
+
         vTaskDelay(CONFIG_BLINK_PERIOD / portTICK_PERIOD_MS);
     }
 }
